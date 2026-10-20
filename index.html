@@ -86,7 +86,7 @@
         <!-- Input file nativo directo -->
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageCapture(event)">
         
-        <button type="button" class="btn-camera-trigger" onclick="openCamera()">
+        <button type="button" class="btn-camera-trigger" onclick="document.getElementById('cameraInput').click();">
             📷 TOMAR FOTO / SELECCIONAR
         </button>
     </div>
@@ -140,12 +140,6 @@
 <script>
     let photoDataOptimized = null;
     let registros = [];
-
-    function openCamera() {
-        const fileInput = document.getElementById('cameraInput');
-        fileInput.value = ''; // Limpiar selección previa
-        fileInput.click();
-    }
 
     function handleImageCapture(event) {
         const file = event.target.files[0];
@@ -201,6 +195,7 @@
         document.getElementById('preview').style.display = 'none';
         document.getElementById('placeholder').style.display = 'block';
         photoDataOptimized = null;
+        document.getElementById('cameraInput').value = '';
 
         alert("✅ Registro guardado con éxito.");
     }
@@ -218,7 +213,7 @@
         registros.forEach((r, idx) => {
             html += `<div class="history-item">
                 <span><strong>#${idx + 1}</strong> (${r.hora})</span>
-                <span>G: <strong>${r.grandes}</strong> \vert{} M: <strong>${r.medianas}</strong> | P: <strong>${r.pequenas}</strong> \vert{} Est: <strong>${r.estibas}</strong></span>
+                <span>G: <strong>${r.grandes}</strong> | M: <strong>${r.medianas}</strong> | P: <strong>${r.pequenas}</strong> | Est: <strong>${r.estibas}</strong></span>
             </div>`;
         });
         historyDiv.innerHTML = html;
@@ -242,7 +237,7 @@
                 alignment: AlignmentType.CENTER
             }),
             new Paragraph({
-                children: [new TextRun({ text: "Fecha y Hora: ", bold: true, size: 20 }), new TextRun({ text: `${new Date().toLocaleDateString()} -${new Date().toLocaleTimeString()}`, size: 20 })],
+                children: [new TextRun({ text: "Fecha y Hora: ", bold: true, size: 20 }), new TextRun({ text: `${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`, size: 20 })],
                 alignment: AlignmentType.CENTER,
                 spaceAfter: 400
             }),
@@ -289,7 +284,7 @@
                 new Paragraph({
                     children: [
                         new TextRun({ text: `Registro #${i + 1} (${r.hora}) - `, bold: true, size: 20 }),
-                        new TextRun({ text: `Grandes: ${r.grandes} \vert{} Medianas:${r.medianas} | Pequeñas: ${r.pequenas} \vert{} Estibas:${r.estibas}`, size: 20 })
+                        new TextRun({ text: `Grandes: ${r.grandes} | Medianas: ${r.medianas} | Pequeñas: ${r.pequenas} | Estibas: ${r.estibas}`, size: 20 })
                     ],
                     alignment: AlignmentType.CENTER,
                     spaceAfter: 150
@@ -336,4 +331,26 @@
             `• Cubetas Grandes: ${totG}\n` +
             `• Cubetas Medianas: ${totM}\n` +
             `• Cubetas Pequeñas: ${totP}\n` +
-            `• Total Estibas: ${totEst}\n
+            `• Total Estibas: ${totEst}`;
+
+        if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            try {
+                await navigator.share({
+                    files: [archivo],
+                    title: 'Informe de Auditoría',
+                    text: textoMensaje
+                });
+                return;
+            } catch (error) {
+                if (error.name !== 'AbortError') console.log(error);
+            }
+        }
+
+        navigator.clipboard.writeText(textoMensaje);
+        saveAs(archivo, `Auditoria_Mula_${placa}.docx`);
+        alert("📋 ¡Resumen copiado al portapapeles e informe Word descargado! Pégalo en WhatsApp.");
+    }
+</script>
+
+</body>
+</html>
